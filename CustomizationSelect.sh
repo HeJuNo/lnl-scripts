@@ -172,7 +172,7 @@ function erase_previous_line {
 : ${CUSTOMIZATION_DEBUG:="0"}
 
 : ${PATCH_BRANCH:="main"}
-: ${PATCH_REPO:="https://github.com/loopandlearn/customization.git"}
+: ${PATCH_REPO:="https://github.com/HeJuNo/lnl-customization.git"}
 
 REPO_NAME=$(basename "${PATCH_REPO}" .git)
 
