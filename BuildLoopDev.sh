@@ -264,28 +264,23 @@ function open_source_warning() {
 
 # *** Start of inlined file: inline_functions/before_final_return_message.sh ***
 function before_final_return_message() {
-    # Default (no argument) prints watch message
-    # An other argument, skips watch message
-    local default_watch_flag="include_watch_message"
-    local watch_flag=${1:-$default_watch_flag}
     echo ""
     echo -e "${INFO_FONT}BEFORE you hit return:${NC}"
     echo " *** Unlock your phone and plug it into your computer"
     echo "     Trust computer if asked"
-    if [ "$watch_flag" = "$default_watch_flag" ]; then
-        echo -e " *** Optional: For Apple Watch - if you never built app on it"
-        echo -e "               Watch paired to phone and unlocked (on your wrist)"
-        echo -e "               Trust computer if asked"
-    fi
-    ios16_warning
     echo ""
-    echo -e "${INFO_FONT}Xcode will open automatically after you hit return${NC}"
+    echo -e "${INFO_FONT}AFTER you hit return, Xcode will open automatically${NC}"
+    echo "  For new phone or new watch (never used with Xcode),"
+    echo "    review Developer Mode Information:"
+    echo -e "  https://loopkit.github.io/loopdocs/build/step14/#prepare-your-phone-and-watch"
+    echo ""
+    echo "  For phones that have Developer Mode enabled continue with these steps"
     echo "  Upper middle of Xcode:"
     echo "    Confirm your phone or simulator choice is selected"
     echo "  Upper right of Xcode:"
     echo "    Wait for packages to finish being copied or downloaded"
-    echo "    When you see indexing, you can build to phone or simulator"
-    echo "  Click on Play button or Command-B or Xcode Menu: Product, Build"
+    echo "    When you see indexing, you can start the build"
+    echo "  Click on Play button to build and run on the selected device"
 }
 # *** End of inlined file: inline_functions/before_final_return_message.sh ***
 
@@ -332,14 +327,14 @@ CUSTOM_BRANCH=${1:-$CUSTOM_BRANCH}
 # *** Start of inlined file: inline_functions/building_verify_version.sh ***
 #This should be the latest iOS version
 #This is the version we expect users to have on their iPhones
-LATEST_IOS_VER="17.0.3"
+LATEST_IOS_VER="17.2.1"
 
 #This should be the lowest xcode version required to build to LATEST_IOS_VER
 LOWEST_XCODE_VER="15.0"
 
 #This should be the latest known xcode version
 #LOWEST_XCODE_VER and LATEST_XCODE_VER will probably be equal but we should have suport for a span of these
-LATEST_XCODE_VER="15.0.1"
+LATEST_XCODE_VER="15.2"
 
 #This is the lowest version of macOS required to run LATEST_XCODE_VER
 LOWEST_MACOS_VER="13.5"
@@ -606,12 +601,6 @@ function ensure_a_year() {
                 ;;
         esac
     done
-}
-
-function ios16_warning() {
-    echo -e "\n${INFO_FONT}If you have iOS 16, you must enable Developer Mode${NC}"
-    echo -e "${INFO_FONT}  Phone Settings->Privacy & Security${NC}"
-    echo -e "  https://loopkit.github.io/loopdocs/build/step14/#prepare-your-phone-and-watch"
 }
 
 function clone_repo() {
