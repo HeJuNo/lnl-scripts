@@ -24,8 +24,8 @@ open_source_warning
 ############################################################
 
 # Stable Dev SHA
-FIXED_SHA="6b7bba6"
-FIXED_COMMIT_DATE="2023-Oct-28"
+FIXED_SHA="ce74cf4"
+FIXED_COMMIT_DATE="2024-Feb-21"
 FLAG_USE_SHA=0
 
 URL_THIS_SCRIPT="https://github.com/LoopKit/LoopWorkspace.git"
@@ -65,6 +65,7 @@ fi
 ############################################################
 
 verify_xcode_path
+check_versions
 clone_repo
 automated_clone_download_error_check
 
@@ -103,4 +104,5 @@ before_final_return_message
 echo -e ""
 return_when_ready
 xed . 
+after_final_return_message
 exit_script

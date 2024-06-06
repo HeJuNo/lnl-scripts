@@ -288,6 +288,13 @@ function before_final_return_message() {
     echo "    When you see indexing, you can start the build"
     echo "  Click on Play button to build and run on the selected device"
 }
+
+function after_final_return_message() {
+    section_divider
+    echo "If you need to find this download in a terminal, copy and paste the next line:"
+    echo ""
+    echo "cd ${LOCAL_DIR}/${REPO_NAME}"
+}
 # *** End of inlined file: inline_functions/before_final_return_message.sh ***
 
 
@@ -333,17 +340,17 @@ CUSTOM_BRANCH=${1:-$CUSTOM_BRANCH}
 # *** Start of inlined file: inline_functions/building_verify_version.sh ***
 #This should be the latest iOS version
 #This is the version we expect users to have on their iPhones
-LATEST_IOS_VER="17.2.1"
+LATEST_IOS_VER="17.5"
 
 #This should be the lowest xcode version required to build to LATEST_IOS_VER
-LOWEST_XCODE_VER="15.0"
+LOWEST_XCODE_VER="15.3"
 
 #This should be the latest known xcode version
 #LOWEST_XCODE_VER and LATEST_XCODE_VER will probably be equal but we should have suport for a span of these
-LATEST_XCODE_VER="15.2"
+LATEST_XCODE_VER="15.4"
 
 #This is the lowest version of macOS required to run LATEST_XCODE_VER
-LOWEST_MACOS_VER="13.5"
+LOWEST_MACOS_VER="14"
 
 # The compare_versions function takes two version strings as input arguments,
 # sorts them in ascending order using the sort command with the -V flag (version sorting),
@@ -614,7 +621,7 @@ function clone_repo() {
     if [ "$SUPPRESS_BRANCH" == "true" ]; then
         LOCAL_DIR="${BUILD_DIR}/${APP_NAME}-${DOWNLOAD_DATE}"
     else
-        LOCAL_DIR="${BUILD_DIR}/${APP_NAME}_${BRANCH}-${DOWNLOAD_DATE}"
+        LOCAL_DIR="${BUILD_DIR}/${APP_NAME}_${BRANCH//\//-}-${DOWNLOAD_DATE}"
     fi
     if [ ${FRESH_CLONE} == 1 ]; then
         mkdir "${LOCAL_DIR}"
@@ -794,6 +801,7 @@ echo -e ""
 return_when_ready
 cd $REPO_NAME
 xed . 
+after_final_return_message
 exit_script
 # *** End of inlined file: src/BuildGlucoseDirect.sh ***
 

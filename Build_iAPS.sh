@@ -19,6 +19,9 @@ DEV_TEAM_SETTING_NAME="DEVELOPER_TEAM"
 # sub modules are not required
 CLONE_SUB_MODULES="0"
 
+FLAG_USE_SHA=0  # Initialize FLAG_USE_SHA to 0
+FIXED_SHA=""    # Initialize FIXED_SHA with an empty string
+
 
 # *** Start of inlined file: inline_functions/build_functions.sh ***
 
@@ -287,6 +290,13 @@ function before_final_return_message() {
     echo "    When you see indexing, you can start the build"
     echo "  Click on Play button to build and run on the selected device"
 }
+
+function after_final_return_message() {
+    section_divider
+    echo "If you need to find this download in a terminal, copy and paste the next line:"
+    echo ""
+    echo "cd ${LOCAL_DIR}/${REPO_NAME}"
+}
 # *** End of inlined file: inline_functions/before_final_return_message.sh ***
 
 
@@ -332,17 +342,17 @@ CUSTOM_BRANCH=${1:-$CUSTOM_BRANCH}
 # *** Start of inlined file: inline_functions/building_verify_version.sh ***
 #This should be the latest iOS version
 #This is the version we expect users to have on their iPhones
-LATEST_IOS_VER="17.2.1"
+LATEST_IOS_VER="17.5"
 
 #This should be the lowest xcode version required to build to LATEST_IOS_VER
-LOWEST_XCODE_VER="15.0"
+LOWEST_XCODE_VER="15.3"
 
 #This should be the latest known xcode version
 #LOWEST_XCODE_VER and LATEST_XCODE_VER will probably be equal but we should have suport for a span of these
-LATEST_XCODE_VER="15.2"
+LATEST_XCODE_VER="15.4"
 
 #This is the lowest version of macOS required to run LATEST_XCODE_VER
-LOWEST_MACOS_VER="13.5"
+LOWEST_MACOS_VER="14"
 
 # The compare_versions function takes two version strings as input arguments,
 # sorts them in ascending order using the sort command with the -V flag (version sorting),
@@ -613,7 +623,7 @@ function clone_repo() {
     if [ "$SUPPRESS_BRANCH" == "true" ]; then
         LOCAL_DIR="${BUILD_DIR}/${APP_NAME}-${DOWNLOAD_DATE}"
     else
-        LOCAL_DIR="${BUILD_DIR}/${APP_NAME}_${BRANCH}-${DOWNLOAD_DATE}"
+        LOCAL_DIR="${BUILD_DIR}/${APP_NAME}_${BRANCH//\//-}-${DOWNLOAD_DATE}"
     fi
     if [ ${FRESH_CLONE} == 1 ]; then
         mkdir "${LOCAL_DIR}"
@@ -762,12 +772,14 @@ function utility_scripts {
     echo -e "     * Next time you build, Xcode will generate a new one"
     echo -e "     * Ensures the next app you build with Xcode will last a year"
     section_divider
+    echo -e "${INFO_FONT}Pay attention - quit Xcode before selecting some options${NC}"
+    section_divider
 
     options=(
         "Delete Old Downloads"
-        "Clean Derived Data"
-        "Xcode Cleanup"
-        "Clean Profiles"
+        "Clean Derived Data (Quit Xcode)"
+        "Xcode Cleanup (Quit Xcode)"
+        "Clean Profiles (Quit Xcode)"
         "Return to Menu"
     )
     actions=(
@@ -823,13 +835,11 @@ run_script() {
 
 open_source_warning
 
-
 ############################################################
 # Welcome & Branch Selection
 ############################################################
 
 URL_THIS_SCRIPT="https://github.com/Artificial-Pancreas/iAPS.git"
-
 
 function select_iaps_main() {
     branch_select ${URL_THIS_SCRIPT} main
@@ -837,6 +847,12 @@ function select_iaps_main() {
 
 function select_iaps_dev() {
     branch_select ${URL_THIS_SCRIPT} dev
+}
+
+function select_iaps_tested_main() {
+    FLAG_USE_SHA=1
+    FIXED_SHA="f404fc4"
+    branch_select ${URL_THIS_SCRIPT} dev iAPS_main_${FIXED_SHA}
 }
 
 if [ -z "$CUSTOM_BRANCH" ]; then
@@ -856,8 +872,8 @@ if [ -z "$CUSTOM_BRANCH" ]; then
         echo -e "  https://www.loopandlearn.org/build-select/#utilities-disk"
         echo -e ""
 
-        options=("iAPS main" "iAPS dev" "Run Maintenance Utilities" "$(exit_or_return_menu)")
-        actions=("select_iaps_main" "select_iaps_dev" "utility_scripts" "exit_script")
+        options=("iAPS 2.3.3 tested main" "iAPS main" "iAPS dev" "Run Maintenance Utilities" "$(exit_or_return_menu)")
+        actions=("select_iaps_tested_main" "select_iaps_main" "select_iaps_dev" "utility_scripts" "exit_script")
         menu_select "${options[@]}" "${actions[@]}"
     done
 else
@@ -868,8 +884,27 @@ fi
 # Standard Build train
 ############################################################
 
-standard_build_train
+verify_xcode_path
+check_versions
+clone_repo
+automated_clone_download_error_check
 
+# special build train for lightly tested commit
+cd $REPO_NAME
+
+this_dir="$(pwd)"
+echo -e "In ${this_dir}"
+if [ ${FLAG_USE_SHA} == 1 ]; then
+    echo -e "  Checking out commit ${FIXED_SHA}\n"
+    git checkout ${FIXED_SHA} --recurse-submodules --quiet
+    git describe --tags --exact-match
+    git rev-parse HEAD
+    echo -e "Continue if no errors reported"
+    return_when_ready
+fi
+
+check_config_override_existence_offer_to_configure
+ensure_a_year
 
 ############################################################
 # Open Xcode
@@ -879,8 +914,8 @@ section_divider
 before_final_return_message
 echo -e ""
 return_when_ready
-cd $REPO_NAME
 xed . 
+after_final_return_message
 exit_script
 # *** End of inlined file: src/Build_iAPS.sh ***
 

@@ -2,6 +2,10 @@
 
 BUILD_DIR=~/Downloads/BuildLoop
 
+# Customization parameters for Loop
+app_name="Loop"
+app_folder_name="LoopWorkspace"
+
 #!inline patch_functions.sh
 
 ############################################################
@@ -77,6 +81,8 @@ add_customization "Profile Save & Load" "2002" "message_for_pr2002"
 add_customization "Algorithm Experiments (main only)" "algorithm_experiments" "message_for_algorithm_experiments"
 
 add_customization "(Browser Build Only) Alert User of TestFlight Expiration (main only)" "testflight_expiration_warning"
+
+add_customization "Support for Dexom ONE+" "dexcom_one_plus"
 
 param_zero_is_customization
 param_zero_result=$?

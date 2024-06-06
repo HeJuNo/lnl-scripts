@@ -230,10 +230,15 @@ function delete_folders_except_latest() {
     echo
 
     echo "Download Folder(s) that can be deleted:"
+
     for folder in "${folders[@]:1}"; do
         echo "  ${folder/#$HOME/~}"
         total_size=$(($total_size + $(du -s "$folder" | awk '{print $1}')))
     done
+
+    echo
+    echo -e "  If Xcode is open in a folder you plan to delete,"
+    echo -e "    ${INFO_FONT}Quit Xcode${NC} before deleting"
 
     total_size_mb=$(echo "scale=2; $total_size / 1024" | bc)
     echo
@@ -311,8 +316,11 @@ function delete_old_downloads() {
         "BuildLoopFollow/LoopFollow_dev*"
         "BuildxDrip4iOS/xDrip4iOS*"
         "BuildGlucoseDirect/GlucoseDirect*"
-        "Build_iAPS/iAPS_main*"
+        "Build_iAPS/iAPS_main_*"
+        "Build_iAPS/iAPS_main-*"
         "Build_iAPS/iAPS_dev*"
+        "BuildTrio/Trio_main*"
+        "BuildTrio/Trio_dev*"
     )
 
     list_build_folders_when_testing

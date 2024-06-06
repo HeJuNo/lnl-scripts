@@ -1,4 +1,4 @@
-#!/bin/bash # script BuildSelectScript.sh
+#!/bin/bash # script TrioBuildSelectScript.sh
 # -----------------------------------------------------------------------------
 # This file is GENERATED. DO NOT EDIT directly.
 # If you want to modify this file, edit the corresponding file in the src/
@@ -304,18 +304,20 @@ function placeholder() {
 # The rest of this is specific to the particular script
 ############################################################
 
+# use app_name instead of hard-coded strings
+app_name="Trio"
+
 FIRST_TIME="1"
 SKIP_OPEN_SOURCE_WARNING="0"
 
 function first_time_menu() {
     section_separator
-    echo -e "${INFO_FONT}Welcome to the Loop and Learn\n  Build-Select Script\n${NC}"
+    echo -e "${INFO_FONT}Welcome to the Loop and Learn\n  ${app_name} Build-Select Script\n${NC}"
     echo "Choose from one of these options:"
-    echo "  1 Download and Build Loop"
+    echo "  1 Download and Build ${app_name}"
     echo "  2 Download and Build Related Apps"
     echo "  3 Run Maintenance Utilities"
-    echo "  4 Run Customization Select"
-    echo "  5 Exit Script"
+    echo "  4 Exit Script"
     echo ""
     echo "After completing a given option, you can choose another or exit the script"
     FIRST_TIME="0"
@@ -332,25 +334,23 @@ while true; do
     section_divider
 
     options=(\
-        "Build Loop" \
+        "Build ${app_name}" \
         "Build Related Apps" \
-        "Maintenance Utilities" \
-        "Customization Select" \
+        "Run Maintenance Utilities" \
         "Exit Script")
     actions=(\
-        "WHICH=Loop" \
+        "WHICH=${app_name}" \
         "WHICH=OtherApps" \
         "WHICH=UtilityScripts" \
-        "WHICH=CustomizationScripts" \
         "exit_script")
     menu_select "${options[@]}" "${actions[@]}"
 
-    if [ "$WHICH" = "Loop" ]; then
+    if [ "$WHICH" = "${app_name}" ]; then
 
         # Issue Warning if not done previously
         open_source_warning
 
-        run_script "BuildLoopReleased.sh" $CUSTOM_BRANCH
+        run_script "Build${app_name}.sh" $CUSTOM_BRANCH
 
 
     elif [ "$WHICH" = "OtherApps" ]; then
@@ -365,21 +365,17 @@ while true; do
         echo -e ""
         options=(\
             "Build Loop Follow" \
-            "Build LoopCaregiver" \
             "Build xDrip4iOS" \
             "Build Glucose Direct" \
             "Return to Menu")
         actions=(\
             "WHICH=LoopFollow" \
-            "WHICH=LoopCaregiver" \
             "WHICH=xDrip4iOS" \
             "WHICH=GlucoseDirect" \
             return)
         menu_select "${options[@]}" "${actions[@]}"
         if [ "$WHICH" = "LoopFollow" ]; then
             run_script "BuildLoopFollow.sh" $CUSTOM_BRANCH
-        elif [ "$WHICH" = "LoopCaregiver" ]; then
-            run_script "BuildLoopCaregiver.sh" $CUSTOM_BRANCH
         elif [ "$WHICH" = "xDrip4iOS" ]; then
             run_script "BuildxDrip4iOS.sh" $CUSTOM_BRANCH
         elif [ "$WHICH" = "GlucoseDirect" ]; then
@@ -388,9 +384,7 @@ while true; do
 
     elif [ "$WHICH" = "UtilityScripts" ]; then
         utility_scripts
-    else
-        run_script "CustomizationSelect.sh" $CUSTOM_BRANCH
     fi
 done
-# *** End of inlined file: src/BuildSelectScript.sh ***
+# *** End of inlined file: src/TrioBuildSelectScript.sh ***
 
