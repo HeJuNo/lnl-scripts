@@ -231,11 +231,34 @@ folder=()
 message_function=()
 status=()
 patch=()
+clean_build=()
+final_message=()
 
-function add_customization() {    
+function add_customization() {
     customization+=("$1")
     folder+=("$2")
     message_function+=("$3")
+    clean_build+=("$4")
+    final_message+=("$5")
+}
+
+folder_translation_from=()
+folder_translation_to=()
+
+function add_translation() {
+    folder_translation_from+=("$1")
+    folder_translation_to+=("$2")
+}
+
+function translate_folder() {
+    local folder_name="$1"
+    for i in "${!folder_translation_from[@]}"; do
+        if [[ "$folder_name" == "${folder_translation_from[$i]}" ]]; then
+            echo "${folder_translation_to[$i]}"
+            return
+        fi
+    done
+    echo "$folder_name"
 }
 
 function refresh_status() {
@@ -375,9 +398,21 @@ function apply_patch {
     local index=$1
     local patch_file="${patch[$index]}"
     local customization_name="${customization[$index]}"
+    local final_message_text="${final_message[$index]}"
+
     if [ -f "$patch_file" ]; then
+        if [ -n "$final_message_text" ]; then
+            section_divider
+            echo -e "${final_message_text}"
+            return_when_ready
+        fi
+    
         if git apply --whitespace=nowarn "$patch_file"; then
             echo -e "${SUCCESS_FONT}  Customization $customization_name applied successfully${NC}"
+            if [ "${clean_build[$index]}" == "1" ]; then
+                echo -e "${INFO_FONT}  Cleaning build folder, please wait  ...  patiently  ...${NC}"
+                xcodebuild -quiet -workspace "${workingdir}/LoopWorkspace.xcworkspace" -scheme LoopWorkspace clean 2>/dev/null
+            fi
             sleep $SLEEP_TIME_AFTER_SUCCESS
         else
             echo -e "${ERROR_FONT}  Failed to apply customization $customization_name${NC}"
@@ -412,9 +447,21 @@ function revert_patch {
     local index=$1
     local patch_file="${patch[$index]}"
     local customization_name="${customization[$index]}"
+    local final_message_text="${final_message[$index]}"
+    
     if [ -f "$patch_file" ]; then
+        if [ -n "$final_message_text" ]; then
+            section_divider
+            echo -e "$final_message_text"
+            return_when_ready
+        fi
+        
         if git apply --whitespace=nowarn --reverse "$patch_file"; then
             echo -e "${SUCCESS_FONT}  Customization $customization_name reverted successfully${NC}"
+            if [ "${clean_build[$index]}" == "1" ]; then
+                echo -e "${INFO_FONT}  Cleaning build folder, please wait  ...  patiently  ...${NC}"
+                xcodebuild -quiet -workspace "${workingdir}/LoopWorkspace.xcworkspace" -scheme LoopWorkspace clean 2>/dev/null
+            fi
             sleep $SLEEP_TIME_AFTER_SUCCESS
         else
             echo -e "${ERROR_FONT}  Failed to revert customization $customization_name${NC}"
@@ -422,7 +469,7 @@ function revert_patch {
         fi
     else
         echo -e "${ERROR_FONT}  Patch file for customization $customization_name does not exist${NC}"
-        return_when_return
+        return_when_ready
     fi
     refresh_status
 }
@@ -626,6 +673,8 @@ function patch_command_line {
 
         for arg in "$@"
         do
+            arg=$(translate_folder "$arg")
+
             found=false
             for i in "${!folder[@]}"
             do
@@ -662,6 +711,8 @@ function message_generic() {
     echo "  These Customizations are documented on the Loop and Learn web site"
     echo "        https://www.loopandlearn.org/custom-code/#custom-list"
     echo
+    echo "  New customizations are available with the release of Loop 3.4.x"
+    echo
 }
 
 # this is always used - it is the incompatible patches message - it can be blank
@@ -676,27 +727,24 @@ function message_to_add_blank_line() {
     printf "\n"
 }
 
-function message_for_cto() {
-    printf "        https://www.loopandlearn.org/custom-type-one-loop-patches/\n\n"
+# optional message to go with add_customization line
+function message_for_profiles() {
+    printf "        This feature enables save and restore of named profiles\n"
+    printf "          https://www.loopandlearn.org/loop-features-in-development/#pr-2002\n\n"
 }
 
 # optional message to go with add_customization line
-function message_for_pr2002() {
-    printf "      This feature in development enables save and restore of named profiles.\n"
-    printf "        https://github.com/LoopKit/Loop/pull/2002\n\n"
+function message_for_basal_lock() {
+    printf "        This feature enables override of Loop behavior for high glucose\n"
+    printf "          https://www.loopandlearn.org/loop-features-in-development/#basal-lock\n\n"
 }
 
-function message_for_algorithm_experiments() {
-    printf "      Algorithm Experiments were merged into dev on 26-June-2023\n"
-    printf "         (Pull requests 1988 and 2008)\n"
-    printf "      This customization is only valid for main versions of Loop.\n\n"
-    printf "      Glucose Based Application Factor:\n"
-    printf "        Gradually increases AB factor with glucose.\n"
-    printf "        Replaces CustomTypeOne LoopPatches ${INFO_FONT}switcher patch${NC}.\n"
-    printf "        https://www.loopandlearn.org/loop-features-in-development/#pr-1988\n\n"
-    printf "      Integral Retrospective Correction:\n"
-    printf "        Helps when glucose differs from setting-based predictions.\n"
-    printf "        https://www.loopandlearn.org/loop-features-in-development/#pr-2008\n\n"
+# optional message to go with add_customization line
+function message_for_live_activity() {
+    printf "        ${INFO_FONT}Xcode MUST be closed${NC}\n"
+    printf "        This feature adds Live Activity and Dynamic Island\n"
+    printf "          Requires iPhone 14 or newer; iOS 16.2 or newer\n"
+    printf "          https://www.loopandlearn.org/loop-features-in-development/#live-activity\n\n"
 }
 
 # list patches in this order with args:
@@ -704,27 +752,26 @@ function message_for_algorithm_experiments() {
 #   Folder name in the patch repo
 #   (Optional) message function shown prior to option
 
-add_customization "CAGE: Upload Pod Start to Nightscout (main only, already in dev)" "omnipod_cage"
-add_customization "SAGE: Upload Dexcom Sensor Start to Nightscout (main only)" "dexcom_sage"
 add_customization "Change Default to Upload Dexcom Readings" "dexcom_upload_readings"
 add_customization "Increase Future Carbs Limit to 4 hours" "future_carbs_4h"
 add_customization "Modify Carb Warning & Limit: Low Carb to 49 & 99" "low_carb_limit"
-
 add_customization "Modify Carb Warning & Limit: High Carb to 201 & 300" "high_carb_limit"
-add_customization "Disable Authentication Requirement" "no_auth"
+add_customization "Disable Authentication Requirement" "no_auth" "message_to_add_blank_line"
+
 add_customization "Override Insulin Needs Picker (50% to 200%, steps of 5%)" "override_sens"
-add_customization "Limit CGM driven Loop Cycle to 5 minutes (main only)" "limit_loop_cycle_time"
 add_customization "Add now line to charts" "now_line"
-add_customization "Modify Logo to include LnL icon" "lnl_icon" "message_to_add_blank_line"
+add_customization "Modify Logo to include LnL icon" "lnl_icon"
+add_customization "Remove Loop Title on Watch App" "watch_title"
+add_customization "2 hour Absorption Time for Lollipop" "2hlollipop" "message_to_add_blank_line"
 
-add_customization "CustomTypeOne LoopPatches" "customtypeone_looppatches" "message_for_cto"
+add_customization "Display 2 Days of Meal History" "meal_days"
+add_customization "Display a Week of Meal History (Slow after Restart)" "meal_week"
 
-add_customization "Profile Save & Load" "2002" "message_for_pr2002"
-add_customization "Algorithm Experiments (main only)" "algorithm_experiments" "message_for_algorithm_experiments"
+add_customization "Profile Save & Load" "profiles" "message_for_profiles"
+add_customization "Basal Lock" "basal_lock" "message_for_basal_lock" "1"
+add_customization "Live Activity/Dynamic Island" "live_activity" "message_for_live_activity" "1" "Verify that Xcode is closed before continuing!"
 
-add_customization "(Browser Build Only) Alert User of TestFlight Expiration (main only)" "testflight_expiration_warning"
-
-add_customization "Support for Dexom ONE+" "dexcom_one_plus"
+add_translation "2002" "profiles"
 
 param_zero_is_customization
 param_zero_result=$?

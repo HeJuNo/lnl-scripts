@@ -60,11 +60,34 @@ folder=()
 message_function=()
 status=()
 patch=()
+clean_build=()
+final_message=()
 
-function add_customization() {    
+function add_customization() {
     customization+=("$1")
     folder+=("$2")
     message_function+=("$3")
+    clean_build+=("$4")
+    final_message+=("$5")
+}
+
+folder_translation_from=()
+folder_translation_to=()
+
+function add_translation() {
+    folder_translation_from+=("$1")
+    folder_translation_to+=("$2")
+}
+
+function translate_folder() {
+    local folder_name="$1"
+    for i in "${!folder_translation_from[@]}"; do
+        if [[ "$folder_name" == "${folder_translation_from[$i]}" ]]; then
+            echo "${folder_translation_to[$i]}"
+            return
+        fi
+    done
+    echo "$folder_name"
 }
 
 function refresh_status() {
@@ -204,9 +227,21 @@ function apply_patch {
     local index=$1
     local patch_file="${patch[$index]}"
     local customization_name="${customization[$index]}"
+    local final_message_text="${final_message[$index]}"
+
     if [ -f "$patch_file" ]; then
+        if [ -n "$final_message_text" ]; then
+            section_divider
+            echo -e "${final_message_text}"
+            return_when_ready
+        fi
+    
         if git apply --whitespace=nowarn "$patch_file"; then
             echo -e "${SUCCESS_FONT}  Customization $customization_name applied successfully${NC}"
+            if [ "${clean_build[$index]}" == "1" ]; then
+                echo -e "${INFO_FONT}  Cleaning build folder, please wait  ...  patiently  ...${NC}"
+                xcodebuild -quiet -workspace "${workingdir}/LoopWorkspace.xcworkspace" -scheme LoopWorkspace clean 2>/dev/null
+            fi
             sleep $SLEEP_TIME_AFTER_SUCCESS
         else
             echo -e "${ERROR_FONT}  Failed to apply customization $customization_name${NC}"
@@ -241,9 +276,21 @@ function revert_patch {
     local index=$1
     local patch_file="${patch[$index]}"
     local customization_name="${customization[$index]}"
+    local final_message_text="${final_message[$index]}"
+    
     if [ -f "$patch_file" ]; then
+        if [ -n "$final_message_text" ]; then
+            section_divider
+            echo -e "$final_message_text"
+            return_when_ready
+        fi
+        
         if git apply --whitespace=nowarn --reverse "$patch_file"; then
             echo -e "${SUCCESS_FONT}  Customization $customization_name reverted successfully${NC}"
+            if [ "${clean_build[$index]}" == "1" ]; then
+                echo -e "${INFO_FONT}  Cleaning build folder, please wait  ...  patiently  ...${NC}"
+                xcodebuild -quiet -workspace "${workingdir}/LoopWorkspace.xcworkspace" -scheme LoopWorkspace clean 2>/dev/null
+            fi
             sleep $SLEEP_TIME_AFTER_SUCCESS
         else
             echo -e "${ERROR_FONT}  Failed to revert customization $customization_name${NC}"
@@ -251,7 +298,7 @@ function revert_patch {
         fi
     else
         echo -e "${ERROR_FONT}  Patch file for customization $customization_name does not exist${NC}"
-        return_when_return
+        return_when_ready
     fi
     refresh_status
 }
@@ -455,6 +502,8 @@ function patch_command_line {
 
         for arg in "$@"
         do
+            arg=$(translate_folder "$arg")
+
             found=false
             for i in "${!folder[@]}"
             do

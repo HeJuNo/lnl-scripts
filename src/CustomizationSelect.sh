@@ -20,6 +20,8 @@ function message_generic() {
     echo "  These Customizations are documented on the Loop and Learn web site"
     echo "        https://www.loopandlearn.org/custom-code/#custom-list"
     echo
+    echo "  New customizations are available with the release of Loop 3.4.x"
+    echo
 }
 
 # this is always used - it is the incompatible patches message - it can be blank
@@ -34,27 +36,24 @@ function message_to_add_blank_line() {
     printf "\n"
 }
 
-function message_for_cto() {
-    printf "        https://www.loopandlearn.org/custom-type-one-loop-patches/\n\n"
+# optional message to go with add_customization line
+function message_for_profiles() {
+    printf "        This feature enables save and restore of named profiles\n"
+    printf "          https://www.loopandlearn.org/loop-features-in-development/#pr-2002\n\n"
 }
 
 # optional message to go with add_customization line
-function message_for_pr2002() {
-    printf "      This feature in development enables save and restore of named profiles.\n"
-    printf "        https://github.com/LoopKit/Loop/pull/2002\n\n"
+function message_for_basal_lock() {
+    printf "        This feature enables override of Loop behavior for high glucose\n"
+    printf "          https://www.loopandlearn.org/loop-features-in-development/#basal-lock\n\n"
 }
 
-function message_for_algorithm_experiments() {
-    printf "      Algorithm Experiments were merged into dev on 26-June-2023\n"
-    printf "         (Pull requests 1988 and 2008)\n"
-    printf "      This customization is only valid for main versions of Loop.\n\n"
-    printf "      Glucose Based Application Factor:\n"
-    printf "        Gradually increases AB factor with glucose.\n"
-    printf "        Replaces CustomTypeOne LoopPatches ${INFO_FONT}switcher patch${NC}.\n"
-    printf "        https://www.loopandlearn.org/loop-features-in-development/#pr-1988\n\n"
-    printf "      Integral Retrospective Correction:\n"
-    printf "        Helps when glucose differs from setting-based predictions.\n"
-    printf "        https://www.loopandlearn.org/loop-features-in-development/#pr-2008\n\n"
+# optional message to go with add_customization line
+function message_for_live_activity() {
+    printf "        ${INFO_FONT}Xcode MUST be closed${NC}\n"
+    printf "        This feature adds Live Activity and Dynamic Island\n"
+    printf "          Requires iPhone 14 or newer; iOS 16.2 or newer\n"
+    printf "          https://www.loopandlearn.org/loop-features-in-development/#live-activity\n\n"
 }
 
 # list patches in this order with args:
@@ -62,27 +61,26 @@ function message_for_algorithm_experiments() {
 #   Folder name in the patch repo
 #   (Optional) message function shown prior to option
 
-add_customization "CAGE: Upload Pod Start to Nightscout (main only, already in dev)" "omnipod_cage"
-add_customization "SAGE: Upload Dexcom Sensor Start to Nightscout (main only)" "dexcom_sage"
 add_customization "Change Default to Upload Dexcom Readings" "dexcom_upload_readings"
 add_customization "Increase Future Carbs Limit to 4 hours" "future_carbs_4h"
 add_customization "Modify Carb Warning & Limit: Low Carb to 49 & 99" "low_carb_limit"
-
 add_customization "Modify Carb Warning & Limit: High Carb to 201 & 300" "high_carb_limit"
-add_customization "Disable Authentication Requirement" "no_auth"
+add_customization "Disable Authentication Requirement" "no_auth" "message_to_add_blank_line"
+
 add_customization "Override Insulin Needs Picker (50% to 200%, steps of 5%)" "override_sens"
-add_customization "Limit CGM driven Loop Cycle to 5 minutes (main only)" "limit_loop_cycle_time"
 add_customization "Add now line to charts" "now_line"
-add_customization "Modify Logo to include LnL icon" "lnl_icon" "message_to_add_blank_line"
+add_customization "Modify Logo to include LnL icon" "lnl_icon"
+add_customization "Remove Loop Title on Watch App" "watch_title"
+add_customization "2 hour Absorption Time for Lollipop" "2hlollipop" "message_to_add_blank_line"
 
-add_customization "CustomTypeOne LoopPatches" "customtypeone_looppatches" "message_for_cto"
+add_customization "Display 2 Days of Meal History" "meal_days"
+add_customization "Display a Week of Meal History (Slow after Restart)" "meal_week"
 
-add_customization "Profile Save & Load" "2002" "message_for_pr2002"
-add_customization "Algorithm Experiments (main only)" "algorithm_experiments" "message_for_algorithm_experiments"
+add_customization "Profile Save & Load" "profiles" "message_for_profiles"
+add_customization "Basal Lock" "basal_lock" "message_for_basal_lock" "1"
+add_customization "Live Activity/Dynamic Island" "live_activity" "message_for_live_activity" "1" "Verify that Xcode is closed before continuing!"
 
-add_customization "(Browser Build Only) Alert User of TestFlight Expiration (main only)" "testflight_expiration_warning"
-
-add_customization "Support for Dexom ONE+" "dexcom_one_plus"
+add_translation "2002" "profiles"
 
 param_zero_is_customization
 param_zero_result=$?
